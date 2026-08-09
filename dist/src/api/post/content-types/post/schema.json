@@ -1,0 +1,72 @@
+{
+    "kind": "collectionType",
+    "collectionName": "posts",
+    "info": {
+        "singularName": "post",
+        "pluralName": "posts",
+        "displayName": "Post",
+        "description": "Blog posts"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "title": {
+            "type": "string",
+            "required": true,
+            "maxLength": 200
+        },
+        "slug": {
+            "type": "uid",
+            "targetField": "title",
+            "required": true
+        },
+        "excerpt": {
+            "type": "text",
+            "required": true,
+            "maxLength": 300
+        },
+        "content": {
+            "type": "blocks"
+        },
+        "coverImage": {
+            "type": "media",
+            "multiple": false,
+            "required": false,
+            "allowedTypes": ["images"]
+        },
+        "readingTime": {
+            "type": "integer",
+            "default": 5,
+            "min": 1
+        },
+        "featured": {
+            "type": "boolean",
+            "default": false
+        },
+        "tags": {
+            "type": "json"
+        },
+        "category": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::category.category",
+            "inversedBy": "posts"
+        },
+        "author": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::author.author",
+            "inversedBy": "posts"
+        },
+        "seoTitle": {
+            "type": "string",
+            "maxLength": 70
+        },
+        "seoDescription": {
+            "type": "text",
+            "maxLength": 160
+        }
+    }
+}
