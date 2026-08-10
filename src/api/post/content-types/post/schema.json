@@ -22,13 +22,8 @@
       "targetField": "title",
       "required": true
     },
-    "excerpt": {
-      "type": "text",
-      "required": true,
-      "maxLength": 300
-    },
     "content": {
-      "type": "blocks"
+      "type": "richtext"
     },
     "coverImage": {
       "type": "media",
@@ -44,9 +39,6 @@
     "featured": {
       "type": "boolean",
       "default": false
-    },
-    "tags": {
-      "type": "json"
     },
     "category": {
       "type": "relation",
