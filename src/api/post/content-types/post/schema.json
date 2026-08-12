@@ -59,6 +59,18 @@
     "seoDescription": {
       "type": "text",
       "maxLength": 160
+    },
+    "htmlContent": {
+      "type": "text"
+    },
+    "excerpt": {
+      "type": "text"
+    },
+    "keywords": {
+      "type": "json"
+    },
+    "date": {
+      "type": "date"
     }
   }
 }
