@@ -22,13 +22,9 @@
             "targetField": "title",
             "required": true
         },
-        "excerpt": {
-            "type": "text",
-            "required": true,
-            "maxLength": 300
-        },
         "content": {
-            "type": "blocks"
+            "type": "customField",
+            "customField": "plugin::rich-text-blocks-extended.rich-text-blocks-extended"
         },
         "coverImage": {
             "type": "media",
@@ -44,9 +40,6 @@
         "featured": {
             "type": "boolean",
             "default": false
-        },
-        "tags": {
-            "type": "json"
         },
         "category": {
             "type": "relation",
@@ -67,6 +60,34 @@
         "seoDescription": {
             "type": "text",
             "maxLength": 160
+        },
+        "htmlContent": {
+            "type": "text"
+        },
+        "excerpt": {
+            "type": "text"
+        },
+        "keywords": {
+            "type": "json"
+        },
+        "date": {
+            "type": "date"
+        },
+        "schema": {
+            "type": "json"
+        },
+        "faq_schema": {
+            "type": "json"
+        },
+        "sources": {
+            "type": "component",
+            "repeatable": true,
+            "component": "shared.source"
+        },
+        "faqs": {
+            "type": "component",
+            "repeatable": true,
+            "component": "shared.faq"
         }
     }
 }
