@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
@@ -5,8 +6,6 @@ const csv = require('csv-parser');
 const FormData = require('form-data');
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
-// Use API Token if provided, else rely on public permissions (which is not recommended for create)
-// Make sure to generate an API token in Strapi Admin > Settings > API Tokens and set it here
 const API_TOKEN = process.env.STRAPI_API_TOKEN || ''; 
 
 const headers = {
@@ -112,6 +111,17 @@ async function importPosts(posts) {
                 keywords = keywords.split(',').map(k => k.trim());
             }
             
+            // Ensure SEO fields adhere to Strapi schema length constraints
+            let seoTitle = post.seoTitle || post.title;
+            if (seoTitle && seoTitle.length > 70) {
+                seoTitle = seoTitle.substring(0, 67) + '...';
+            }
+
+            let seoDescription = post.seoDescription || post.excerpt;
+            if (seoDescription && seoDescription.length > 160) {
+                seoDescription = seoDescription.substring(0, 157) + '...';
+            }
+            
             // Prepare payload
             const payload = {
                 data: {
@@ -122,8 +132,8 @@ async function importPosts(posts) {
                     excerpt: post.excerpt || null,
                     keywords: keywords,
                     date: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
-                    seoTitle: post.seoTitle || post.title,
-                    seoDescription: post.seoDescription || post.excerpt,
+                    seoTitle: seoTitle,
+                    seoDescription: seoDescription,
                 }
             };
             
@@ -160,44 +170,85 @@ function parseCSV(filePath) {
     });
 }
 
+function parseSingleFile(filePath) {
+    const filename = path.basename(filePath);
+    const content = fs.readFileSync(filePath, 'utf8');
+    const isHtml = filePath.endsWith('.html');
+    const isMd = filePath.endsWith('.md');
+    
+    let metadata = {};
+    let htmlContent = content;
+
+    if (content.startsWith('---')) {
+        const parts = content.split('---');
+        if (parts.length >= 3) {
+            const fm = parts[1].trim().split('\n');
+            fm.forEach(line => {
+                const colonIdx = line.indexOf(':');
+                if (colonIdx > -1) {
+                    const key = line.slice(0, colonIdx).trim();
+                    const val = line.slice(colonIdx + 1).trim();
+                    metadata[key] = val.replace(/^["']|["']$/g, '');
+                }
+            });
+            htmlContent = parts.slice(2).join('---').trim();
+        }
+    } else if (isHtml) {
+        const getMetaContent = (nameOrProp) => {
+            const regex = new RegExp(`<meta\\s+(?:name|property)=["']${nameOrProp}["']\\s+content=["'](.*?)["']`, 'i');
+            const match = content.match(regex);
+            if (match) return match[1];
+            const regex2 = new RegExp(`<meta\\s+content=["'](.*?)["']\\s+(?:name|property)=["']${nameOrProp}["']`, 'i');
+            const match2 = content.match(regex2);
+            return match2 ? match2[1] : null;
+        };
+
+        const getTitle = () => {
+            const match = content.match(/<title[^>]*>(.*?)<\/title>/i);
+            return match ? match[1] : null;
+        };
+
+        const getCanonicalSlug = () => {
+            const match = content.match(/<link\s+rel=["']canonical["']\s+href=["'](.*?)["']/i);
+            if (match) {
+                const parts = match[1].split('/');
+                return parts[parts.length - 1] || null;
+            }
+            return null;
+        };
+
+        metadata.title = getMetaContent('og:title') || getTitle();
+        metadata.excerpt = getMetaContent('description') || getMetaContent('og:description');
+        metadata.author = getMetaContent('author');
+        metadata.category = getMetaContent('category');
+        metadata.keywords = getMetaContent('keywords');
+        metadata.img = getMetaContent('og:image');
+        metadata.date = getMetaContent('article:published_time');
+        metadata.slug = getCanonicalSlug();
+    }
+
+    const fallbackSlug = filename.replace(/\.(md|html)$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+    return {
+        title: metadata.title || filename.replace(/\.(md|html)$/, ''),
+        slug: metadata.slug || fallbackSlug,
+        category: metadata.category || 'General',
+        author: metadata.author || 'Admin',
+        date: metadata.date,
+        img: metadata.img || metadata.coverImage,
+        excerpt: metadata.excerpt,
+        keywords: metadata.keywords,
+        [isMd ? 'content' : 'htmlContent']: htmlContent
+    };
+}
+
 function parseMD(dirPath) {
-    // Basic parser assuming frontmatter format or HTML files
     const results = [];
     const files = fs.readdirSync(dirPath);
     for (const file of files) {
         if (!file.endsWith('.md') && !file.endsWith('.html')) continue;
-        const content = fs.readFileSync(path.join(dirPath, file), 'utf8');
-        
-        // Simplistic frontmatter extraction for pilot (could use front-matter library for prod)
-        let metadata = {};
-        let htmlContent = content;
-        
-        if (content.startsWith('---')) {
-            const parts = content.split('---');
-            if (parts.length >= 3) {
-                const fm = parts[1].trim().split('\n');
-                fm.forEach(line => {
-                    const colonIdx = line.indexOf(':');
-                    if (colonIdx > -1) {
-                        const key = line.slice(0, colonIdx).trim();
-                        const val = line.slice(colonIdx + 1).trim();
-                        metadata[key] = val.replace(/^["']|["']$/g, '');
-                    }
-                });
-                htmlContent = parts.slice(2).join('---').trim();
-            }
-        }
-        
-        results.push({
-            title: metadata.title || file.replace(/\.(md|html)$/, ''),
-            slug: metadata.slug,
-            category: metadata.category,
-            author: metadata.author,
-            date: metadata.date,
-            img: metadata.img || metadata.coverImage,
-            excerpt: metadata.excerpt,
-            [file.endsWith('.md') ? 'content' : 'htmlContent']: htmlContent
-        });
+        const fullPath = path.join(dirPath, file);
+        results.push(parseSingleFile(fullPath));
     }
     return results;
 }
@@ -227,8 +278,11 @@ async function run() {
     } else if (target.endsWith('.csv')) {
         console.log(`Parsing CSV file...`);
         posts = await parseCSV(target);
+    } else if (target.endsWith('.html') || target.endsWith('.md')) {
+        console.log(`Parsing single ${target.endsWith('.html') ? 'HTML' : 'Markdown'} file...`);
+        posts = [parseSingleFile(target)];
     } else {
-        console.error('Unsupported file format. Please provide a .json, .csv, or a directory of .md/.html files.');
+        console.error('Unsupported file format. Please provide a .json, .csv, .html, .md file, or a directory of .md/.html files.');
         process.exit(1);
     }
     

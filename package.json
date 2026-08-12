@@ -15,6 +15,7 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
+    "@crispyyv/strapi-plugin-rich-text-blocks-extended": "^1.5.1",
     "@strapi/database": "5.51.2",
     "@strapi/plugin-cloud": "5.51.2",
     "@strapi/plugin-users-permissions": "5.51.2",
