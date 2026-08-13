@@ -23,6 +23,12 @@
     },
     "ctaLinkUrl": {
       "type": "string"
+    },
+    "ctaSecondaryLinkText": {
+      "type": "string"
+    },
+    "ctaSecondaryLinkUrl": {
+      "type": "string"
     }
   }
 }
