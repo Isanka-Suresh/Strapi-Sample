@@ -56,7 +56,7 @@
     "seoDescription": {
       "type": "text"
     },
-    "htmlContent": {
+    "contentBlocks": {
       "type": "blocks"
     },
     "excerpt": {

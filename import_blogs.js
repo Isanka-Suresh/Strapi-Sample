@@ -265,10 +265,10 @@ async function importPosts(posts) {
                 data: {
                     title: post.title,
                     slug: post.slug || post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                    // htmlContent must be Strapi Blocks JSON (array); convert if it arrives as raw HTML/text
-                    htmlContent: Array.isArray(post.htmlContent)
-                        ? post.htmlContent
-                        : htmlToBlocks(post.htmlContent || post.content || ''),
+                    // contentBlocks must be Strapi Blocks JSON (array); convert if it arrives as raw HTML/text
+                    contentBlocks: Array.isArray(post.contentBlocks)
+                        ? post.contentBlocks
+                        : htmlToBlocks(post.contentBlocks || post.content || ''),
                     excerpt: post.excerpt || null,
                     keywords: keywords,
                     date: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
@@ -378,8 +378,8 @@ function parseSingleFile(filePath) {
         img: metadata.img || metadata.coverImage,
         excerpt: metadata.excerpt,
         keywords: metadata.keywords,
-        // Always write rich content to htmlContent as Strapi Blocks JSON
-        htmlContent: htmlToBlocks(htmlContent)
+        // Always write rich content to contentBlocks as Strapi Blocks JSON
+        contentBlocks: htmlToBlocks(htmlContent)
     };
 }
 
