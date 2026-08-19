@@ -617,14 +617,7 @@ export interface ApiPostPost extends Struct.CollectionTypeSchema {
     faq_schema: Schema.Attribute.JSON;
     faqs: Schema.Attribute.Component<'shared.faq', true>;
     featured: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
-    htmlContent: Schema.Attribute.RichText &
-      Schema.Attribute.CustomField<
-        'plugin::ckeditor.CKEditor',
-        {
-          output: 'HTML';
-          preset: 'rich';
-        }
-      >;
+    htmlContent: Schema.Attribute.RichText;
     keywords: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::post.post'> &
