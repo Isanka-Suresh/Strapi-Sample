@@ -55,8 +55,13 @@
         "seoDescription": {
             "type": "text"
         },
-        "contentBlocks": {
-            "type": "blocks"
+        "htmlContent": {
+            "type": "customField",
+            "customField": "plugin::ckeditor.CKEditor",
+            "options": {
+                "output": "HTML",
+                "preset": "rich"
+            }
         },
         "excerpt": {
             "type": "text"

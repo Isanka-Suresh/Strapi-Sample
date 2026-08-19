@@ -608,7 +608,6 @@ export interface ApiPostPost extends Struct.CollectionTypeSchema {
   attributes: {
     author: Schema.Attribute.Relation<'manyToOne', 'api::author.author'>;
     category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
-    contentBlocks: Schema.Attribute.Blocks;
     coverImage: Schema.Attribute.Media<'images'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -618,6 +617,14 @@ export interface ApiPostPost extends Struct.CollectionTypeSchema {
     faq_schema: Schema.Attribute.JSON;
     faqs: Schema.Attribute.Component<'shared.faq', true>;
     featured: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    htmlContent: Schema.Attribute.RichText &
+      Schema.Attribute.CustomField<
+        'plugin::ckeditor.CKEditor',
+        {
+          output: 'HTML';
+          preset: 'rich';
+        }
+      >;
     keywords: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::post.post'> &
