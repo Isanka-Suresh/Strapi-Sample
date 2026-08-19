@@ -22,10 +22,6 @@
             "targetField": "title",
             "required": true
         },
-        "content": {
-            "type": "customField",
-            "customField": "plugin::rich-text-blocks-extended.rich-text-blocks-extended"
-        },
         "coverImage": {
             "type": "media",
             "multiple": false,
@@ -60,12 +56,7 @@
             "type": "text"
         },
         "htmlContent": {
-            "type": "customField",
-            "customField": "plugin::ckeditor.CKEditor",
-            "options": {
-                "output": "HTML",
-                "preset": "standard"
-            }
+            "type": "blocks"
         },
         "excerpt": {
             "type": "text"
