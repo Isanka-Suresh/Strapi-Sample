@@ -61,7 +61,11 @@
     },
     "htmlContent": {
       "type": "customField",
-      "customField": "plugin::ckeditor.CKEditor"
+      "customField": "plugin::ckeditor.CKEditor",
+      "options": {
+        "output": "HTML",
+        "preset": "standard"
+      }
     },
     "excerpt": {
       "type": "text"
