@@ -60,12 +60,7 @@
       "type": "text"
     },
     "htmlContent": {
-      "type": "customField",
-      "customField": "plugin::ckeditor.CKEditor",
-      "options": {
-        "output": "HTML",
-        "preset": "standard"
-      }
+      "type": "richtext"
     },
     "excerpt": {
       "type": "text"
