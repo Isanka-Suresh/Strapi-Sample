@@ -1,8 +1,43 @@
 diff --git a/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorInput/index.jsx b/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorInput/index.jsx
-index b11c701..4ad797e 100644
+index b11c701..e8d3bac 100644
 --- a/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorInput/index.jsx
 +++ b/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorInput/index.jsx
-@@ -75,9 +75,11 @@ const CKEditorInput = ( props ) => {
+@@ -10,8 +10,9 @@ import MediaLib from '../MediaLib';
+ 
+ import { CKEditor } from '@ckeditor/ckeditor5-react';
+ 
+-const { ClassicEditor } = window.CKEDITOR;
+-
++// NOTE: window.CKEDITOR is populated by the CDN loader in CKEditorProvider
++// via useCKEditorCloud. This component is only rendered after the CDN
++// promise resolves (cloud.status === 'success'), so reading it here is safe.
+ import sanitize from './utils/utils';
+ import { useField } from '@strapi/strapi/admin';
+ 
+@@ -39,6 +40,11 @@ const CKEditorInput = ( props ) => {
+ 
+   const [ mediaLibVisible, setMediaLibVisible ] = useState( false );
+ 
++  // Read ClassicEditor here (inside the component body), not at module scope.
++  // By the time this component renders, useCKEditorCloud has finished loading
++  // the CDN bundle and window.CKEDITOR is guaranteed to be available.
++  const ClassicEditor = window.CKEDITOR?.ClassicEditor;
++
+   const handleToggleMediaLib = () => setMediaLibVisible( prev => !prev );
+ 
+   const handleChangeAssets = assets => {
+@@ -60,6 +66,10 @@ const CKEditorInput = ( props ) => {
+     handleToggleMediaLib();
+   };
+ 
++  if ( !ClassicEditor ) {
++    return null;
++  }
++
+   return (
+     <Field.Root
+       name= {name }
+@@ -75,9 +85,11 @@ const CKEditorInput = ( props ) => {
          <GlobalStyling />
          <CKEditor
            editor={ ClassicEditor }
