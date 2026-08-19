@@ -9,10 +9,10 @@ const config = [
             contentSecurityPolicy: {
                 useDefaults: true,
                 directives: {
-                    'connect-src': ["'self'", 'https:'],
-                    'img-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com', 'cdn.ckeditor.com'],
+                    'connect-src': ["'self'", 'https:', 'https://proxy-event.ckeditor.com'],
+                    'img-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com', 'https://cdn.ckeditor.com'],
                     'media-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
-                    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'cdn.ckeditor.com'],
+                    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://cdn.ckeditor.com'],
                     upgradeInsecureRequests: null,
                 },
             },
