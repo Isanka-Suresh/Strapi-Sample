@@ -54,15 +54,14 @@
             "inversedBy": "posts"
         },
         "seoTitle": {
-            "type": "string",
-            "maxLength": 70
+            "type": "string"
         },
         "seoDescription": {
-            "type": "text",
-            "maxLength": 160
+            "type": "text"
         },
         "htmlContent": {
-            "type": "text"
+            "type": "customField",
+            "customField": "plugin::ckeditor.CKEditor"
         },
         "excerpt": {
             "type": "text"
