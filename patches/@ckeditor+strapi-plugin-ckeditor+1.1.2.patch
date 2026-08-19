@@ -1,0 +1,17 @@
+diff --git a/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorInput/index.jsx b/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorInput/index.jsx
+index b11c701..4ad797e 100644
+--- a/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorInput/index.jsx
++++ b/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorInput/index.jsx
+@@ -75,9 +75,11 @@ const CKEditorInput = ( props ) => {
+         <GlobalStyling />
+         <CKEditor
+           editor={ ClassicEditor }
+-          disabled={ disabled }
+           data={ value ?? '' }
+           onReady={ ( editor ) => {
++            if (disabled) {
++               editor.enableReadOnlyMode('strapi-ckeditor');
++            }
+             const wordCountPlugin = editor.plugins.get( 'WordCount' );
+             const wordCountWrapper = wordCounter.current;
+             wordCountWrapper.appendChild( wordCountPlugin.wordCountContainer );
