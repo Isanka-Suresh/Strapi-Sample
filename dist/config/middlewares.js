@@ -10,8 +10,9 @@ const config = [
                 useDefaults: true,
                 directives: {
                     'connect-src': ["'self'", 'https:'],
-                    'img-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
+                    'img-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com', 'cdn.ckeditor.com'],
                     'media-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
+                    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'cdn.ckeditor.com'],
                     upgradeInsecureRequests: null,
                 },
             },
