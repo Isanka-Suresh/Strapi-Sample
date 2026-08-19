@@ -13,6 +13,144 @@ const headers = {
     ...(API_TOKEN ? { 'Authorization': `Bearer ${API_TOKEN}` } : {})
 };
 
+// ─────────────────────────────────────────────────────────────
+// HTML → Strapi Blocks JSON converter
+// Converts raw HTML into the structured JSON array expected by
+// Strapi's native blocks editor (type: "blocks" field).
+// ─────────────────────────────────────────────────────────────
+function htmlToBlocks(html) {
+    if (!html || typeof html !== 'string') return [];
+
+    const blocks = [];
+
+    // Strip outer <html>/<head>/<body> wrappers if present
+    let content = html
+        .replace(/<html[^>]*>/gi, '')
+        .replace(/<\/html>/gi, '')
+        .replace(/<head[\s\S]*?<\/head>/gi, '')
+        .replace(/<body[^>]*>/gi, '')
+        .replace(/<\/body>/gi, '')
+        .trim();
+
+    // Helper: strip all HTML tags from a string
+    const stripTags = (str) => str.replace(/<[^>]+>/g, '').trim();
+
+    // Helper: decode common HTML entities
+    const decodeEntities = (str) => str
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"');
+
+    // Helper: build inline children array from inner HTML
+    // Handles <strong>, <em>, <u>, <s>, <code>, <a>
+    function parseInlineChildren(innerHtml) {
+        if (!innerHtml) return [{ type: 'text', text: '' }];
+
+        const children = [];
+        const tokenRegex = /<(strong|b|em|i|u|s|del|code|a)(\s[^>]*)?>([^<]*)<\/\1>|([^<]+)/gi;
+        let match;
+
+        while ((match = tokenRegex.exec(innerHtml)) !== null) {
+            if (match[4] !== undefined) {
+                const text = decodeEntities(match[4]);
+                if (text) children.push({ type: 'text', text });
+            } else {
+                const tag = match[1].toLowerCase();
+                const attrs = match[2] || '';
+                const innerText = decodeEntities(stripTags(match[3]));
+                if (!innerText) continue;
+
+                if (tag === 'a') {
+                    const hrefMatch = attrs.match(/href=["']([^"']*)["']/);
+                    const href = hrefMatch ? hrefMatch[1] : '#';
+                    children.push({
+                        type: 'link',
+                        url: href,
+                        children: [{ type: 'text', text: innerText }]
+                    });
+                } else {
+                    const node = { type: 'text', text: innerText };
+                    if (tag === 'strong' || tag === 'b') node.bold = true;
+                    if (tag === 'em' || tag === 'i') node.italic = true;
+                    if (tag === 'u') node.underline = true;
+                    if (tag === 's' || tag === 'del') node.strikethrough = true;
+                    if (tag === 'code') node.code = true;
+                    children.push(node);
+                }
+            }
+        }
+
+        return children.length > 0 ? children : [{ type: 'text', text: decodeEntities(stripTags(innerHtml)) }];
+    }
+
+    // Remove HTML comments before processing
+    content = content.replace(/<!--[\s\S]*?-->/g, '');
+
+    // Process top-level block elements
+    const topLevelRegex = /<(h[1-6]|p|ul|ol|blockquote|pre)([ \t][^>]*)?>([^]*?)<\/\1>|<(hr|img)([ \t][^>]*)?>/gi;
+    let blockMatch;
+
+    while ((blockMatch = topLevelRegex.exec(content)) !== null) {
+        const tag = (blockMatch[1] || blockMatch[4] || '').toLowerCase();
+        const attrs = blockMatch[2] || blockMatch[5] || '';
+        const inner = blockMatch[3] || '';
+
+        if (/^h[1-6]$/.test(tag)) {
+            const level = parseInt(tag[1], 10);
+            const text = decodeEntities(stripTags(inner));
+            if (text) blocks.push({ type: 'heading', level, children: [{ type: 'text', text }] });
+
+        } else if (tag === 'p') {
+            const children = parseInlineChildren(inner);
+            const text = children.map(c => c.text || '').join('');
+            if (text.trim()) blocks.push({ type: 'paragraph', children });
+
+        } else if (tag === 'ul' || tag === 'ol') {
+            const listType = tag === 'ul' ? 'unordered' : 'ordered';
+            const items = [];
+            const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+            let liMatch;
+            while ((liMatch = liRegex.exec(inner)) !== null) {
+                const liText = decodeEntities(stripTags(liMatch[1]));
+                if (liText) items.push({ type: 'list-item', children: [{ type: 'text', text: liText }] });
+            }
+            if (items.length > 0) blocks.push({ type: 'list', format: listType, children: items });
+
+        } else if (tag === 'blockquote') {
+            const text = decodeEntities(stripTags(inner));
+            if (text) blocks.push({ type: 'quote', children: [{ type: 'text', text }] });
+
+        } else if (tag === 'pre') {
+            const text = decodeEntities(stripTags(inner));
+            if (text) blocks.push({ type: 'code', children: [{ type: 'text', text }] });
+
+        } else if (tag === 'img') {
+            const srcMatch = attrs.match(/src=["']([^"']*)["']/);
+            const altMatch = attrs.match(/alt=["']([^"']*)["']/);
+            if (srcMatch) {
+                blocks.push({
+                    type: 'image',
+                    image: { url: srcMatch[1], alternativeText: altMatch ? altMatch[1] : '' },
+                    children: [{ type: 'text', text: '' }]
+                });
+            }
+        }
+        // hr has no direct Blocks equivalent — intentionally skipped
+    }
+
+    // Fallback: if nothing was parsed (plain text or unrecognised markup),
+    // wrap the entire stripped content as a single paragraph block
+    if (blocks.length === 0) {
+        const text = decodeEntities(stripTags(content)).trim();
+        if (text) blocks.push({ type: 'paragraph', children: [{ type: 'text', text }] });
+    }
+
+    return blocks;
+}
+
 // Helper: Upload image from URL or Local Path
 async function uploadImage(imagePath) {
     if (!imagePath) return null;
@@ -127,8 +265,10 @@ async function importPosts(posts) {
                 data: {
                     title: post.title,
                     slug: post.slug || post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                    content: post.content || null,
-                    htmlContent: post.htmlContent || null,
+                    // htmlContent must be Strapi Blocks JSON (array); convert if it arrives as raw HTML/text
+                    htmlContent: Array.isArray(post.htmlContent)
+                        ? post.htmlContent
+                        : htmlToBlocks(post.htmlContent || post.content || ''),
                     excerpt: post.excerpt || null,
                     keywords: keywords,
                     date: post.date ? new Date(post.date).toISOString() : new Date().toISOString(),
@@ -238,7 +378,8 @@ function parseSingleFile(filePath) {
         img: metadata.img || metadata.coverImage,
         excerpt: metadata.excerpt,
         keywords: metadata.keywords,
-        [isMd ? 'content' : 'htmlContent']: htmlContent
+        // Always write rich content to htmlContent as Strapi Blocks JSON
+        htmlContent: htmlToBlocks(htmlContent)
     };
 }
 
