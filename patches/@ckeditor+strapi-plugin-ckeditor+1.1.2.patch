@@ -50,3 +50,16 @@ index b11c701..e8d3bac 100644
              const wordCountPlugin = editor.plugins.get( 'WordCount' );
              const wordCountWrapper = wordCounter.current;
              wordCountWrapper.appendChild( wordCountPlugin.wordCountContainer );
+diff --git a/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorProvider/index.jsx b/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorProvider/index.jsx
+index af11072..e0d6fe1 100644
+--- a/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorProvider/index.jsx
++++ b/node_modules/@ckeditor/strapi-plugin-ckeditor/admin/src/components/CKEditorProvider/index.jsx
+@@ -33,7 +33,7 @@ const CKEditorProvider = ( {
+   }, [] )
+ 
+   const cloud = useCKEditorCloud( {
+-    version: '47.5.0',
++    version: '43.3.1',
+     plugins: {
+       CKEditorInput: async () => ( await import('../CKEditorInput') ).CKEditorInput
+     }

@@ -64,8 +64,7 @@
       "customField": "plugin::ckeditor.CKEditor",
       "options": {
         "output": "HTML",
-        "preset": "standard",
-        "licenseKey": "GPL"
+        "preset": "standard"
       }
     },
     "excerpt": {
